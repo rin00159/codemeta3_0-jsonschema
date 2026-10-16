@@ -1,0 +1,1 @@
+softwareTypeは、公式contextで定義された2型に加え、WebApplication、MobileApplication、VideoGameも許可したままです。これはschema.orgのサブタイプです。厳密にSoftwareSourceCodeとSoftwareApplicationだけにしたい場合は、patternから削れば絞れます。
