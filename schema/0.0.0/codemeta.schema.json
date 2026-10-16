@@ -1,0 +1,646 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://raw.githubusercontent.com/rin00159/codemeta3_0-jsonschema/refs/heads/main/schema/0.0.0/codemeta.schema.json",
+	"title": "CodeMeta 3.0",
+	"description": "CodeMeta 3.0 (https://codemeta.github.io/) の codemeta.json を検証する JSON Schema。JSON-LD の拡張性のため、未知のプロパティ(schema:xxx 等)はルートでは許可する。",
+	"type": "object",
+	"required": ["@context", "name"],
+	"anyOf": [{ "required": ["@type"] }, { "required": ["type"] }],
+	"properties": {
+		"@context": {
+			"description": "CodeMeta の JSON-LD コンテキスト。CodeMeta の context URL を含むこと(3.0 推奨)。",
+			"oneOf": [
+				{ "$ref": "#/$defs/contextUri" },
+				{
+					"type": "array",
+					"minItems": 1,
+					"contains": { "$ref": "#/$defs/contextUri" },
+					"items": {
+						"oneOf": [{ "$ref": "#/$defs/uri" }, { "type": "object" }]
+					}
+				}
+			]
+		},
+		"@type": {
+			"description": "ソフトウェアの種別。SoftwareSourceCode または SoftwareApplication(およびそのサブタイプ)。",
+			"$ref": "#/$defs/softwareTypeOrArray"
+		},
+		"type": {
+			"description": "@type の別名 (CodeMeta context で定義された alias)。",
+			"$ref": "#/$defs/softwareTypeOrArray"
+		},
+		"@id": {
+			"description": "このソフトウェアの識別子 (DOI の URL, SWHID, URL など)。",
+			"type": "string"
+		},
+		"id": {
+			"description": "@id の別名 (CodeMeta context で定義された alias)。",
+			"type": "string"
+		},
+
+		"name": {
+			"type": "string",
+			"minLength": 1,
+			"description": "ソフトウェア名。"
+		},
+		"description": { "type": "string", "description": "ソフトウェアの説明。" },
+		"identifier": {
+			"description": "識別子 (DOI など)。文字列または PropertyValue。",
+			"oneOf": [
+				{ "type": "string" },
+				{ "$ref": "#/$defs/propertyValue" },
+				{
+					"type": "array",
+					"items": {
+						"oneOf": [{ "type": "string" }, { "$ref": "#/$defs/propertyValue" }]
+					}
+				}
+			]
+		},
+		"alternateName": { "$ref": "#/$defs/stringOrStrings" },
+		"url": { "$ref": "#/$defs/uriOrUris" },
+		"sameAs": { "$ref": "#/$defs/uriOrUris" },
+		"relatedLink": { "$ref": "#/$defs/uriOrUris" },
+		"keywords": { "$ref": "#/$defs/stringOrStrings" },
+
+		"version": { "$ref": "#/$defs/stringOrNumber" },
+		"softwareVersion": { "$ref": "#/$defs/stringOrNumber" },
+
+		"codeRepository": {
+			"description": "ソースコードリポジトリの URL。",
+			"$ref": "#/$defs/uriOrUris"
+		},
+		"issueTracker": {
+			"description": "課題管理システムの URL。",
+			"$ref": "#/$defs/uri"
+		},
+		"readme": { "description": "README の URL。", "$ref": "#/$defs/uri" },
+		"buildInstructions": {
+			"description": "ビルド手順の URL。",
+			"$ref": "#/$defs/uri"
+		},
+		"continuousIntegration": {
+			"description": "継続的インテグレーションの URL (CodeMeta 3.0 / 2.0 の用語)。",
+			"$ref": "#/$defs/uri"
+		},
+		"contIntegration": {
+			"description": "【非推奨】CodeMeta 1.0 の旧名称。continuousIntegration を使うこと。",
+			"deprecated": true,
+			"$ref": "#/$defs/uri"
+		},
+		"developmentStatus": {
+			"description": "開発状況。repostatus.org の値 (concept, wip, suspended, abandoned, active, inactive, unsupported, moved) またはその URL (例: https://www.repostatus.org/#active) を推奨。",
+			"anyOf": [{ "$ref": "#/$defs/repoStatus" }, { "type": "string" }]
+		},
+		"embargoEndDate": {
+			"description": "公開禁止期間の終了日 (CodeMeta 3.0 の用語)。",
+			"$ref": "#/$defs/dateOrDateTime"
+		},
+		"embargoDate": {
+			"description": "【非推奨】embargoEndDate の旧名称 (CodeMeta 2.0 以前)。",
+			"deprecated": true,
+			"$ref": "#/$defs/dateOrDateTime"
+		},
+		"funding": { "$ref": "#/$defs/stringOrStrings" },
+		"funder": { "$ref": "#/$defs/personOrOrganizationOrArray" },
+		"referencePublication": {
+			"oneOf": [
+				{ "$ref": "#/$defs/scholarlyArticle" },
+				{ "type": "array", "items": { "$ref": "#/$defs/scholarlyArticle" } }
+			]
+		},
+		"citation": {
+			"description": "引用すべき文献 (CreativeWork または文字列)。",
+			"oneOf": [
+				{ "type": "string" },
+				{ "$ref": "#/$defs/creativeWork" },
+				{
+					"type": "array",
+					"items": {
+						"oneOf": [{ "type": "string" }, { "$ref": "#/$defs/creativeWork" }]
+					}
+				}
+			]
+		},
+
+		"programmingLanguage": {
+			"description": "プログラミング言語 (文字列または ComputerLanguage)。",
+			"oneOf": [
+				{ "type": "string" },
+				{ "$ref": "#/$defs/computerLanguage" },
+				{
+					"type": "array",
+					"items": {
+						"oneOf": [
+							{ "type": "string" },
+							{ "$ref": "#/$defs/computerLanguage" }
+						]
+					}
+				}
+			]
+		},
+		"runtimePlatform": { "$ref": "#/$defs/stringOrStrings" },
+		"targetProduct": {
+			"description": "SoftwareSourceCode が生成する SoftwareApplication。",
+			"oneOf": [
+				{ "$ref": "#/$defs/softwareApplication" },
+				{ "type": "array", "items": { "$ref": "#/$defs/softwareApplication" } }
+			]
+		},
+		"applicationCategory": {
+			"description": "アプリケーションの分類 (文字列または URL)。",
+			"$ref": "#/$defs/stringOrStrings"
+		},
+		"applicationSubCategory": {
+			"description": "アプリケーションの下位分類 (文字列または URL)。対応するものがあれば Wikidata の英語名を使うこと(一意性のためのこの schema 独自の推奨)。",
+			"$ref": "#/$defs/stringOrStrings"
+		},
+		"downloadUrl": { "$ref": "#/$defs/uri" },
+		"installUrl": { "$ref": "#/$defs/uri" },
+		"fileSize": { "type": "string" },
+		"fileFormat": { "$ref": "#/$defs/stringOrStrings" },
+		"memoryRequirements": { "type": "string" },
+		"operatingSystem": { "$ref": "#/$defs/stringOrStrings" },
+		"permissions": { "type": "string" },
+		"processorRequirements": { "$ref": "#/$defs/stringOrStrings" },
+		"releaseNotes": { "type": "string" },
+		"softwareHelp": {
+			"oneOf": [
+				{ "$ref": "#/$defs/creativeWork" },
+				{ "type": "array", "items": { "$ref": "#/$defs/creativeWork" } }
+			]
+		},
+		"softwareRequirements": {
+			"description": "依存ソフトウェア。",
+			"oneOf": [
+				{ "type": "string" },
+				{ "$ref": "#/$defs/softwareSourceCodeOrApplication" },
+				{
+					"type": "array",
+					"items": {
+						"oneOf": [
+							{ "type": "string" },
+							{ "$ref": "#/$defs/softwareSourceCodeOrApplication" }
+						]
+					}
+				}
+			]
+		},
+		"softwareSuggestions": {
+			"description": "あると望ましい (任意の) 依存ソフトウェア。",
+			"oneOf": [
+				{ "$ref": "#/$defs/softwareSourceCodeOrApplication" },
+				{
+					"type": "array",
+					"items": { "$ref": "#/$defs/softwareSourceCodeOrApplication" }
+				}
+			]
+		},
+		"storageRequirements": { "type": "string" },
+		"supportingData": {
+			"oneOf": [
+				{ "$ref": "#/$defs/dataFeed" },
+				{ "type": "array", "items": { "$ref": "#/$defs/dataFeed" } }
+			]
+		},
+		"hasSourceCode": {
+			"description": "(SoftwareApplication 用) この実行物のソースコード。CodeMeta 3.0 の用語。",
+			"oneOf": [
+				{ "$ref": "#/$defs/softwareSourceCode" },
+				{ "type": "array", "items": { "$ref": "#/$defs/softwareSourceCode" } }
+			]
+		},
+		"isSourceCodeOf": {
+			"description": "(SoftwareSourceCode 用) このソースコードから生成される実行物。CodeMeta 3.0 の用語。",
+			"oneOf": [
+				{ "$ref": "#/$defs/softwareApplication" },
+				{ "type": "array", "items": { "$ref": "#/$defs/softwareApplication" } }
+			]
+		},
+		"isPartOf": {
+			"oneOf": [
+				{ "type": "string" },
+				{ "$ref": "#/$defs/creativeWork" },
+				{
+					"type": "array",
+					"items": {
+						"oneOf": [{ "type": "string" }, { "$ref": "#/$defs/creativeWork" }]
+					}
+				}
+			]
+		},
+		"hasPart": {
+			"oneOf": [
+				{ "type": "string" },
+				{ "$ref": "#/$defs/creativeWork" },
+				{
+					"type": "array",
+					"items": {
+						"oneOf": [{ "type": "string" }, { "$ref": "#/$defs/creativeWork" }]
+					}
+				}
+			]
+		},
+		"isAccessibleForFree": { "type": "boolean" },
+
+		"author": { "$ref": "#/$defs/authorList" },
+		"creator": { "$ref": "#/$defs/personOrOrganizationOrArray" },
+		"contributor": { "$ref": "#/$defs/authorList" },
+		"maintainer": {
+			"description": "保守責任者 (Person)。Role での指定も可。",
+			"oneOf": [
+				{ "$ref": "#/$defs/person" },
+				{ "$ref": "#/$defs/role" },
+				{
+					"type": "array",
+					"items": {
+						"oneOf": [{ "$ref": "#/$defs/person" }, { "$ref": "#/$defs/role" }]
+					}
+				}
+			]
+		},
+		"editor": {
+			"description": "編集者 (Person)。",
+			"oneOf": [
+				{ "$ref": "#/$defs/person" },
+				{ "type": "array", "items": { "$ref": "#/$defs/person" } }
+			]
+		},
+		"producer": { "$ref": "#/$defs/personOrOrganizationOrArray" },
+		"provider": { "$ref": "#/$defs/personOrOrganizationOrArray" },
+		"publisher": { "$ref": "#/$defs/personOrOrganizationOrArray" },
+		"sponsor": { "$ref": "#/$defs/personOrOrganizationOrArray" },
+		"copyrightHolder": { "$ref": "#/$defs/personOrOrganizationOrArray" },
+		"copyrightYear": { "type": "integer", "minimum": 0 },
+		"license": {
+			"description": "ライセンス。SPDX の URL (例: https://spdx.org/licenses/MIT) を推奨。",
+			"oneOf": [
+				{ "$ref": "#/$defs/uri" },
+				{ "$ref": "#/$defs/creativeWork" },
+				{
+					"type": "array",
+					"items": {
+						"oneOf": [
+							{ "$ref": "#/$defs/uri" },
+							{ "$ref": "#/$defs/creativeWork" }
+						]
+					}
+				}
+			]
+		},
+
+		"dateCreated": { "$ref": "#/$defs/dateOrDateTime" },
+		"dateModified": { "$ref": "#/$defs/dateOrDateTime" },
+		"datePublished": { "$ref": "#/$defs/dateOrDateTime" },
+
+		"review": {
+			"oneOf": [
+				{ "$ref": "#/$defs/review" },
+				{ "type": "array", "items": { "$ref": "#/$defs/review" } }
+			]
+		},
+		"encoding": {
+			"oneOf": [
+				{ "type": "object" },
+				{ "type": "array", "items": { "type": "object" } }
+			]
+		},
+		"position": {
+			"description": "著者などの並び順を示す番号。",
+			"type": "integer"
+		}
+	},
+	"additionalProperties": true,
+
+	"$defs": {
+		"contextUri": {
+			"type": "string",
+			"enum": [
+				"https://w3id.org/codemeta/3.0",
+				"https://w3id.org/codemeta/2.0",
+				"https://doi.org/10.5063/schema/codemeta-2.0",
+				"https://raw.githubusercontent.com/codemeta/codemeta/master/codemeta.jsonld"
+			]
+		},
+		"softwareType": {
+			"type": "string",
+			"pattern": "^((schema:)|(https?://schema\\.org/))?(SoftwareSourceCode|SoftwareApplication|WebApplication|MobileApplication|VideoGame)$"
+		},
+		"softwareTypeOrArray": {
+			"oneOf": [
+				{ "$ref": "#/$defs/softwareType" },
+				{
+					"type": "array",
+					"minItems": 1,
+					"contains": { "$ref": "#/$defs/softwareType" },
+					"items": { "type": "string" }
+				}
+			]
+		},
+		"repoStatus": {
+			"type": "string",
+			"pattern": "^((https?://www\\.repostatus\\.org/#)?)(concept|wip|suspended|abandoned|active|inactive|unsupported|moved)$"
+		},
+
+		"uri": {
+			"type": "string",
+			"format": "uri",
+			"pattern": "^[A-Za-z][A-Za-z0-9+.\\-]*:\\S+$"
+		},
+		"stringOrStrings": {
+			"oneOf": [
+				{ "type": "string" },
+				{ "type": "array", "items": { "type": "string" } }
+			]
+		},
+		"uriOrUris": {
+			"oneOf": [
+				{ "$ref": "#/$defs/uri" },
+				{ "type": "array", "items": { "$ref": "#/$defs/uri" } }
+			]
+		},
+		"stringOrNumber": {
+			"oneOf": [{ "type": "string" }, { "type": "number" }]
+		},
+		"date": {
+			"type": "string",
+			"format": "date",
+			"pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+		},
+		"dateTime": {
+			"type": "string",
+			"format": "date-time",
+			"pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2}(\\.\\d+)?)?(Z|[+-]\\d{2}:\\d{2})$"
+		},
+		"dateOrDateTime": {
+			"anyOf": [{ "$ref": "#/$defs/date" }, { "$ref": "#/$defs/dateTime" }]
+		},
+
+		"propertyValue": {
+			"type": "object",
+			"required": ["@type"],
+			"properties": {
+				"@type": { "enum": ["PropertyValue", "schema:PropertyValue"] },
+				"propertyID": { "type": "string" },
+				"name": { "type": "string" },
+				"value": { "type": ["string", "number", "boolean"] },
+				"url": { "$ref": "#/$defs/uri" }
+			},
+			"additionalProperties": false
+		},
+
+		"person": {
+			"type": "object",
+			"properties": {
+				"@type": { "enum": ["Person", "schema:Person"] },
+				"type": { "enum": ["Person", "schema:Person"] },
+				"@id": { "type": "string", "description": "ORCID などの URI。" },
+				"id": { "type": "string", "description": "@id の別名。" },
+				"givenName": { "type": "string" },
+				"familyName": { "type": "string" },
+				"name": { "type": "string" },
+				"email": { "type": "string", "format": "email" },
+				"url": { "$ref": "#/$defs/uri" },
+				"sameAs": { "$ref": "#/$defs/uriOrUris" },
+				"affiliation": {
+					"oneOf": [
+						{ "type": "string" },
+						{ "$ref": "#/$defs/organization" },
+						{
+							"type": "array",
+							"items": {
+								"oneOf": [
+									{ "type": "string" },
+									{ "$ref": "#/$defs/organization" }
+								]
+							}
+						}
+					]
+				},
+				"identifier": { "type": "string" },
+				"position": { "type": "integer" }
+			},
+			"allOf": [
+				{ "anyOf": [{ "required": ["@type"] }, { "required": ["type"] }] },
+				{
+					"anyOf": [
+						{ "required": ["familyName"] },
+						{ "required": ["name"] },
+						{ "required": ["@id"] },
+						{ "required": ["id"] }
+					]
+				}
+			],
+			"additionalProperties": false
+		},
+
+		"organization": {
+			"type": "object",
+			"properties": {
+				"@type": { "enum": ["Organization", "schema:Organization"] },
+				"type": { "enum": ["Organization", "schema:Organization"] },
+				"@id": { "type": "string", "description": "ROR などの URI。" },
+				"id": { "type": "string", "description": "@id の別名。" },
+				"name": { "type": "string" },
+				"email": { "type": "string", "format": "email" },
+				"url": { "$ref": "#/$defs/uri" },
+				"sameAs": { "$ref": "#/$defs/uriOrUris" },
+				"address": { "type": ["string", "object"] },
+				"identifier": { "type": "string" },
+				"position": { "type": "integer" }
+			},
+			"allOf": [
+				{ "anyOf": [{ "required": ["@type"] }, { "required": ["type"] }] },
+				{
+					"anyOf": [
+						{ "required": ["name"] },
+						{ "required": ["@id"] },
+						{ "required": ["id"] }
+					]
+				}
+			],
+			"additionalProperties": false
+		},
+
+		"personOrOrganization": {
+			"oneOf": [
+				{ "$ref": "#/$defs/person" },
+				{ "$ref": "#/$defs/organization" }
+			]
+		},
+
+		"role": {
+			"description": "役割付きの関与者。CodeMeta では Role 内の関与者は schema:author などで指定する。",
+			"type": "object",
+			"properties": {
+				"@type": { "enum": ["Role", "schema:Role"] },
+				"type": { "enum": ["Role", "schema:Role"] },
+				"roleName": {
+					"type": "string",
+					"description": "役割名 (例: 'maintainer')。"
+				},
+				"startDate": { "$ref": "#/$defs/dateOrDateTime" },
+				"endDate": { "$ref": "#/$defs/dateOrDateTime" },
+				"schema:author": { "$ref": "#/$defs/personOrOrganization" },
+				"author": { "$ref": "#/$defs/personOrOrganization" },
+				"schema:contributor": { "$ref": "#/$defs/personOrOrganization" },
+				"contributor": { "$ref": "#/$defs/personOrOrganization" },
+				"schema:maintainer": { "$ref": "#/$defs/person" },
+				"maintainer": { "$ref": "#/$defs/person" },
+				"position": { "type": "integer" }
+			},
+			"allOf": [
+				{ "anyOf": [{ "required": ["@type"] }, { "required": ["type"] }] }
+			],
+			"additionalProperties": false
+		},
+
+		"personOrOrganizationOrArray": {
+			"oneOf": [
+				{ "$ref": "#/$defs/personOrOrganization" },
+				{ "type": "array", "items": { "$ref": "#/$defs/personOrOrganization" } }
+			]
+		},
+
+		"authorList": {
+			"description": "著者 (位置順を保つため配列を推奨。CodeMeta では author は @list)。Role での指定も可。",
+			"oneOf": [
+				{ "$ref": "#/$defs/personOrOrganization" },
+				{ "$ref": "#/$defs/role" },
+				{
+					"type": "array",
+					"items": {
+						"oneOf": [
+							{ "$ref": "#/$defs/personOrOrganization" },
+							{ "$ref": "#/$defs/role" }
+						]
+					}
+				}
+			]
+		},
+
+		"creativeWork": {
+			"type": "object",
+			"properties": {
+				"@type": { "type": "string" },
+				"type": { "type": "string" },
+				"@id": { "type": "string" },
+				"id": { "type": "string" },
+				"name": { "type": "string" },
+				"url": { "$ref": "#/$defs/uri" },
+				"identifier": { "type": "string" },
+				"author": { "$ref": "#/$defs/authorList" },
+				"datePublished": { "$ref": "#/$defs/dateOrDateTime" }
+			},
+			"additionalProperties": true
+		},
+
+		"scholarlyArticle": {
+			"allOf": [
+				{ "$ref": "#/$defs/creativeWork" },
+				{
+					"properties": {
+						"@type": {
+							"enum": ["ScholarlyArticle", "schema:ScholarlyArticle"]
+						},
+						"headline": { "type": "string" },
+						"isPartOf": { "type": ["string", "object"] }
+					}
+				}
+			]
+		},
+
+		"computerLanguage": {
+			"type": "object",
+			"properties": {
+				"@type": { "enum": ["ComputerLanguage", "schema:ComputerLanguage"] },
+				"type": { "enum": ["ComputerLanguage", "schema:ComputerLanguage"] },
+				"name": { "type": "string" },
+				"version": { "$ref": "#/$defs/stringOrNumber" },
+				"url": { "$ref": "#/$defs/uri" }
+			},
+			"required": ["name"],
+			"additionalProperties": false
+		},
+
+		"softwareApplication": {
+			"type": "object",
+			"properties": {
+				"@type": { "$ref": "#/$defs/softwareType" },
+				"type": { "$ref": "#/$defs/softwareType" },
+				"@id": { "type": "string" },
+				"id": { "type": "string" },
+				"name": { "type": "string" },
+				"version": { "$ref": "#/$defs/stringOrNumber" },
+				"url": { "$ref": "#/$defs/uri" },
+				"identifier": { "type": "string" }
+			},
+			"additionalProperties": true
+		},
+
+		"softwareSourceCode": {
+			"type": "object",
+			"properties": {
+				"@type": { "$ref": "#/$defs/softwareType" },
+				"type": { "$ref": "#/$defs/softwareType" },
+				"@id": { "type": "string" },
+				"id": { "type": "string" },
+				"name": { "type": "string" },
+				"version": { "$ref": "#/$defs/stringOrNumber" },
+				"url": { "$ref": "#/$defs/uri" },
+				"identifier": { "type": "string" },
+				"codeRepository": { "$ref": "#/$defs/uriOrUris" },
+				"programmingLanguage": {
+					"oneOf": [
+						{ "type": "string" },
+						{ "$ref": "#/$defs/computerLanguage" }
+					]
+				}
+			},
+			"additionalProperties": true
+		},
+
+		"softwareSourceCodeOrApplication": {
+			"type": "object",
+			"properties": {
+				"@type": { "$ref": "#/$defs/softwareTypeOrArray" },
+				"type": { "$ref": "#/$defs/softwareTypeOrArray" },
+				"@id": { "type": "string" },
+				"id": { "type": "string" },
+				"name": { "type": "string" },
+				"version": { "$ref": "#/$defs/stringOrNumber" },
+				"identifier": { "type": "string" },
+				"url": { "$ref": "#/$defs/uri" },
+				"runtimePlatform": { "$ref": "#/$defs/stringOrStrings" },
+				"codeRepository": { "$ref": "#/$defs/uriOrUris" }
+			},
+			"anyOf": [{ "required": ["@type"] }, { "required": ["type"] }],
+			"additionalProperties": true
+		},
+
+		"dataFeed": {
+			"type": "object",
+			"properties": {
+				"@type": { "enum": ["DataFeed", "schema:DataFeed"] },
+				"type": { "enum": ["DataFeed", "schema:DataFeed"] },
+				"name": { "type": "string" },
+				"url": { "$ref": "#/$defs/uri" },
+				"dataFeedElement": { "type": ["array", "object"] }
+			},
+			"additionalProperties": true
+		},
+
+		"review": {
+			"type": "object",
+			"properties": {
+				"@type": { "enum": ["Review", "schema:Review"] },
+				"type": { "enum": ["Review", "schema:Review"] },
+				"reviewAspect": { "type": "string" },
+				"reviewBody": { "type": "string" },
+				"url": { "$ref": "#/$defs/uri" },
+				"author": { "$ref": "#/$defs/personOrOrganizationOrArray" }
+			},
+			"additionalProperties": true
+		}
+	}
+}
